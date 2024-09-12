@@ -1,0 +1,37 @@
+
+Usage: SDRconnect --server [--help] [--version] [--listdevices]
+  [--hwser=<serialNumber>] [--port=<portNumber>] [--ip=<ipAddress>]
+  [--samplerate=<sampleRate>] [--centerfrequency=<centerFrequency>]
+  [--biast=<biasTenable>] [--antenna=<antennaNumber>]
+  [--rfnotch=<rfNotchEnable>] [--dabnotch=<dabNotchEnable>]
+  [--lnastate=<lnaState>] [--ifgr=<ifGr>] [--ifagc=<ifagcEnable>]
+  [--setpoint=<setPoint>] [--agc-attack=<agcAttack>] [--agc-decay=<agcDecay>]
+  [--agc-decay-delay=<agcDecayDelay>] [--agc-decay-threshold=<DecayThreshold>]
+  [--exclusive] [--max-clients=<maxClients>]
+
+--server           (Required) Starts the server engine
+--help             Print this help information
+--version          Print the application version number
+--listdevices      Print a list of connected devices
+
+--exclusive        Prevent ANY client from accessing the hardware controls
+<serialNumber>     RSP serial number
+<portNumber>       Listen on TCP port number (default is 50000)
+<ipAddress>        Listen on TCP IP Address (default is 0.0.0.0 which is any)
+<sampleRate>       Hardware sample rate in Hz (default is 2000000)
+<centerFrequency>  Hardware center frequency in Hz (default is 100000000)
+<biasTenable>      disable = 0, enable = 1 (default is 0)
+<antennaNumber>    Ant A/Tuner 1 50ohm = 0, Ant B/Tuner 2 = 1, Ant C/HiZ = 2
+<rfNotchEnable>    disable = 0, enable = 1 (default is 0)
+<dabNotchEnable>   disable = 0, enable = 1 (default is 0)
+<lnaState>         Range is dependant on RSP and center frequency 0=max gain
+<ifGr>             Range is 20 to 59 (default is 40)
+<ifagcEnable>      disable = 0, enable = 1 (default is 1)
+<setPoint>         default = -30 dbFS, range is normally -20 to -72
+<agcAttack>        default = 500 ms, range is 0 to 1000
+<agcDecay>         default = 500 ms, range is 0 to 1000
+<agcDecayDelay>    default = 200 ms, range is 0 to 1000
+<DecayThreshold>   default = 5 dB, range is 0 to 20
+<maxClients>       maximum number of allowed clients (default = 8)
+
+
