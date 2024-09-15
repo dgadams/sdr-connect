@@ -16,7 +16,7 @@ name: sdrconnect
 services:
   rsp-dx:
     container_name: rsp-dx
-    image: /dgadams/sdr-connect:latest
+    image: dgadams/sdr-connect:latest
     restart: unless-stopped
 #    init: true
     ports:
