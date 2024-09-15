@@ -2,7 +2,7 @@
 ## Containerized SDRconnect server.  
 ### Allows for remote operation of an SDRplay device
 - Version 0.3 of SDRconnect.
-- Based on Alpine Linux.  Size 200 MB.
+- Based on Alpine Linux.  Size 171 MB.
 ### Running with docker compose yml file:
 ```
 #  D.G. Adams 2024-09-14
