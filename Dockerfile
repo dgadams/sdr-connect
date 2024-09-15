@@ -8,15 +8,17 @@
 #
 FROM alpine:latest
 WORKDIR /sdr
-COPY ./SDRconnect_linux-x64_f795c3df0.run sdrc.run
 
 RUN <<EOF
-    apk --no-cache add swig alsa-lib-dev libusb libuuid icu gcompat
-    adduser -D sdr
-    adduser sdr sdr
+    apk --no-cache add wget swig alsa-lib-dev libusb libuuid icu gcompat
+
+    wget "https://sdrplay.com/software/SDRconnect_linux-x64_f795c3df0.run" -O sdrc.run
     chmod +x sdrc.run
     ./sdrc.run --tar xvf .
     rm sdrc.run
+    apk remove wget
+    adduser -D sdr
+    adduser sdr sdr
 EOF
 
 USER sdr
