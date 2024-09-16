@@ -18,7 +18,7 @@ RUN <<EOF
     wget $URL -O sdrc.run
     chmod +x sdrc.run
     ./sdrc.run --tar xvf .
-    rm sdrc.run
+    rm *.ico *.txt install.sh sdrc.run
     apk remove wget
     adduser -D sdr
     adduser sdr sdr
