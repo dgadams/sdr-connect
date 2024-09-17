@@ -19,10 +19,8 @@ RUN <<EOF
     chmod +x sdrc.run
     ./sdrc.run --tar xvf .
     rm *.ico *.txt install.sh sdrc.run
-    apk remove wget
-    adduser -D sdr
-    adduser sdr sdr
+    apk del wget
 EOF
 
-USER sdr
+USER nobody
 ENTRYPOINT  ["/sdr/SDRconnect", "--server"]
