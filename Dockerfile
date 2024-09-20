@@ -12,7 +12,10 @@ FROM bellsoft/alpaquita-linux-base:stream-glibc AS install
 WORKDIR /sdr
 
 RUN <<EOF
-    URL="https://sdrplay.com/software/SDRconnect_linux-x64_f795c3df0.run"
+#   V4
+    URL="https://sdrplay.com/software/SDRconnect_linux-x64_5dce37273.run"
+#   V3
+#    URL="https://sdrplay.com/software/SDRconnect_linux-x64_f795c3df0.run"
 
     apk --no-cache add wget swig alsa-lib libusb libuuid icu 
     wget $URL -O sdrc.run
