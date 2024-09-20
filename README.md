@@ -1,11 +1,10 @@
 # sdr-connect 
 ## Containerized SDRconnect server.  
 ### Allows for remote operation of an SDRplay device
-- Version 0.3 of SDRconnect.
-- Based on Alpine Linux.  Size 171 MB.
+- Version 4  of SDRconnect.
+- Based on Alpine Linux.  Size 148  MB.
 - Alpaquita version available using dockerfile.alpaquita
     - maybe more stable than alpine.  Alpaquita uses glibc.
-    - Size is 191 MB.
 ### Running with docker compose yml file:
 ```
 #  D.G. Adams 2024-09-14
@@ -19,7 +18,7 @@ name: sdrconnect
 services:
   rsp-dx:
     container_name: rsp-dx
-    image: dgadams/sdr-connect:latest
+    image: dgadams/sdr-connect:v4
     restart: unless-stopped
 #    init: true
     ports:
