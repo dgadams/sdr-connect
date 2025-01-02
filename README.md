@@ -1,7 +1,7 @@
 # sdr-connect 
 ## Containerized SDRconnect server.  
 ### Allows for remote operation of an SDRplay device
-- Version 5  of SDRconnect.
+- Version 1.0.3  of SDRconnect.
 - Based on Alpine Linux.  Size 171  MB.
 - Alpaquita version available using dockerfile.alpaquita
     - maybe more stable than alpine.  Alpaquita uses glibc.
@@ -18,7 +18,7 @@ name: sdrconnect
 services:
   rsp-dx:
     container_name: rsp-dx
-    image: dgadams/sdr-connect:v5
+    image: dgadams/sdr-connect:1.0.3
     restart: unless-stopped
 #    init: true
     ports:
@@ -41,8 +41,6 @@ SUBSYSTEMS=="usb", ATTRS{idVendor}=="1df7", MODE:="0666"
 
 ```
 #### Notes:
- - The GUI sometimes cannot see the server.  Try testing the connection using 
-the "Remote Devices Editor" dialog and then retry.
  - Caution if running other docker containers that talk to the sdrplay device.  
 He who gets the resource first, wins.
  - This project uses licensed software from https://sdrplay.com.
