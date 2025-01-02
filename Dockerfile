@@ -1,6 +1,6 @@
 #  Dockerfile for building sdrconnect docker image
 #
-#  D.G. Adams 2023-09-28
+#  D.G. Adams 2025-01-02
 #
 # The SDR devices need USB read/write permissions.
 # Add: SUBSYSTEMS=="usb", ATTRS{idVendor}=="1df7", MODE="0666"
@@ -10,8 +10,10 @@ FROM alpine:latest
 WORKDIR /sdr
 
 RUN <<EOF
+#   1.0.3
+    URL="https://sdrplay.com/software//SDRconnect_linux-x64_b6fce59a3.run" 
 #   V5
-    URL="https://sdrplay.com/software/SDRconnect_linux-x64_105b8f722.run"
+#    URL="https://sdrplay.com/software/SDRconnect_linux-x64_105b8f722.run"
 #   V4
 #    URL="https://sdrplay.com/software/SDRconnect_linux-x64_5dce37273.run"
 #   V4 ARM64
