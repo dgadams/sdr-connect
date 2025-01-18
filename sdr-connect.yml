@@ -10,10 +10,10 @@ services:
     devices:
       - /dev/bus/usb
     command:
-      - "--port=50000"
-      - "--lnastate=3"
-      - "--centerfrequency=95500000"
-      - "--antenna=2"
+#      - "--port=50000"
+#      - "--lnastate=3"
+#      - "--centerfrequency=95500000"
+#      - "--antenna=2"
       - "--hwser=2103083B44"
 
 #  rsp-2:
