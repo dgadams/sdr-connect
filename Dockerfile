@@ -1,33 +1,32 @@
 #  Dockerfile for building sdrconnect docker image
 #
-#  D.G. Adams 2025-01-02
+#  D.G. Adams 2025-01-18
+#
+# Modified 2025-01-18 to make a multi level build using scratch.
 #
 # The SDR devices need USB read/write permissions.
 # Add: SUBSYSTEMS=="usb", ATTRS{idVendor}=="1df7", MODE="0666"
-# to a file in /etc/udev/rules.d to allow read/write access.
+# to a file in the docker host /etc/udev/rules.d to allow read/write access.
 #
-FROM alpine:latest
+FROM alpine:latest AS build
 WORKDIR /sdr
 
-RUN <<EOF
-#   1.0.3
-    URL="https://sdrplay.com/software//SDRconnect_linux-x64_b6fce59a3.run" 
-#   V5
-#    URL="https://sdrplay.com/software/SDRconnect_linux-x64_105b8f722.run"
-#   V4
-#    URL="https://sdrplay.com/software/SDRconnect_linux-x64_5dce37273.run"
-#   V4 ARM64
-#    URL="https://sdrplay.com/software//SDRconnect_linux-arm64_5dce37273.run" 
-#   V3
-#    URL="https://sdrplay.com/software/SDRconnect_linux-x64_f795c3df0.run"
+# SDR Connect 1.0.3
+ADD https://sdrplay.com/software//SDRconnect_linux-x64_b6fce59a3.run ./sdrc.run
 
-    apk --no-cache add wget swig alsa-lib libusb libuuid icu gcompat 
-    wget $URL -O sdrc.run
-    chmod +x sdrc.run
-    ./sdrc.run --tar xvf .
-    rm -f *.ico *.txt *.dbg install.sh sdrc.run
-    apk del wget
-EOF
+RUN <<ENDRUN
+apk --no-cache add swig alsa-lib libusb libuuid icu gcompat
+chmod +x sdrc.run
+./sdrc.run --tar xvf .
+rm -f *.ico *.txt *.dbg install.sh sdrc.run
+ENDRUN
+###################################################
+# Remember deleting files from build doesn't remove the space from the image.
+# Thus create a scratch image and copy / which only copies the files and not the space.
+# This saves about 30M in the install image.
 
+FROM scratch AS install
+COPY --from=build / /
+WORKDIR /sdr
 USER nobody
 ENTRYPOINT  ["/sdr/SDRconnect", "--server"]
