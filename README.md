@@ -19,7 +19,7 @@ name: sdrconnect
 services:
   rsp-dx:
     container_name: rsp-dx
-    image: dgadams/sdr-connect:1.0.3
+    image: dgadams/sdr-connect:latest
     restart: unless-stopped
 #    init: true
     ports:
@@ -28,13 +28,11 @@ services:
       - /dev/bus/usb
     command:
       - "--port=50000"
-      - "--lnastate=3"
       - "--centerfrequency=95500000"
-      - "--antenna=2"
+      - "--antenna=1"
       - "--hwser=2103083B44"
 #
-# set --hwser= to the serial number of your device if you have more than one SDRplay device.
-# otherwise the line can be deleted.
+# Commands are optional.  See help.txt for a list of sdrConnect command line arguments.
 ```
 ### example /etc/udev/rules.d/66-sdrplay.rules file that must live on the docker host machine.
 ```
