@@ -1,13 +1,9 @@
 #!/bin/bash
+# This script uses a feature of bash - extglob which allows rm !(exception_list) to
+# selectively remove any file in the current image layer except those listed.  
+# Used for muntzing libraries and files down to the minimal set needed to run the application.
 
-#   remove unneeded files - do a little muntzing.
-#   This works in conjuction with the filesystem build layer to allow
-#   us to remove any file from the debian distribution
-
-#   This is rather ugly and was created by iteratively removing and testing
-#   until things broke.  Then put it back.  This is called muntzing.
-#   Need to add extended globbing so rm !() works
-    shopt -s extglob
+shopt -s extglob
 
 #   Remove select libraries
     cd /usr/lib
