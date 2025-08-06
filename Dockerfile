@@ -11,8 +11,10 @@
 FROM debian:bookworm-slim AS dga-build
 WORKDIR /sdr
 
+# SDR Connect 1.0.4
+ADD https://sdrplay.com/software//SDRconnect_linux-x64_83273bcd8.run sdrc.run
 # SDR Connect 1.0.3
-ADD https://sdrplay.com/software//SDRconnect_linux-x64_b6fce59a3.run sdrc.run
+#ADD https://sdrplay.com/software//SDRconnect_linux-x64_b6fce59a3.run sdrc.run
 
 RUN <<EOR
 	apt-get -yq update

@@ -1,12 +1,12 @@
 # sdr-connect 
 ## Containerized SDRconnect server.  
 ### Allows for remote operation of an SDRplay device
-- Version 1.0.3  of SDRconnect.
-- Based on Alpine Linux.  Size 172  MB.
+- Version 1.0.4  of SDRconnect.
+- Based on Debian Linux.  Size 135 MB.
 
 ### Running with docker compose yml file:
 ```
-#  D.G. Adams 2024-09-14
+#  D.G. Adams 2025-08-06
 #
 # The SDR devices need USB read/write permissions.
 # Add: SUBSYSTEMS=="usb", ATTRS{idVendor}=="1df7", MODE="0666"
