@@ -11,8 +11,8 @@
 FROM debian:bookworm-slim AS dga-build
 WORKDIR /sdr
 
-# SDR Connect 1.0.5
-ADD https://sdrplay.com/software//SDRconnect_linux-x64_e077f2ebe.run  sdrc.run
+# SDR Connect 1.0.4
+ADD https://sdrplay.com/software//SDRconnect_linux-x64_83273bcd8.run sdrc.run
 COPY play-muntz.sh .
 
 RUN <<EOR
