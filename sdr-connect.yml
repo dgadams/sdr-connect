@@ -4,7 +4,6 @@ services:
     container_name: rsp-dx
     image: dgadams/sdr-connect
     restart: unless-stopped
-    init: true
     ports:
       - 50000:50000
     devices:
