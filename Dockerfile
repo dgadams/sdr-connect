@@ -13,24 +13,21 @@ WORKDIR /sdr
 
 # SDR Connect 1.0.5
 ADD https://sdrplay.com/software//SDRconnect_linux-x64_e077f2ebe.run  sdrc.run
-COPY play-muntz.sh .
+COPY muntz.sh .
 
 RUN <<EOR
 	apt-get -yq update
     apt-get -yq install libusb-1.0-0 swig libasound2 libuuid1 libicu72 busybox
-    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 	chmod +x sdrc.run
     ./sdrc.run --tar xvf .
-    ./play-muntz.sh
+    ./muntz.sh
     /bin/busybox --install -s
-    rm -f *.ico *.txt *.dbg install.sh sdrc.run play-muntz.sh
+    rm -f *.ico *.txt *.dbg install.sh sdrc.run muntz.sh
 EOR
 
 ###################################################
-# Remember deleting files from build doesn't remove the space from the image.
-# Thus create a scratch image and copy / which only copies the files and not the space.
-# This saves about 30M in the install image.
+# Building from scratch with a copy removes empty space.
 
 FROM scratch AS install
 COPY --from=dga-build / /
