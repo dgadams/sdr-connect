@@ -8,12 +8,12 @@
 # to a file in the docker host /etc/udev/rules.d to allow read/write access.
 #
 FROM debian:bookworm-slim AS dga-build
-SHELL ["/bin/bash", "-c"]
 WORKDIR /sdr
 
 # SDR Connect 1.0.5
 ADD https://sdrplay.com/software//SDRconnect_linux-x64_e077f2ebe.run  sdrc.run
 RUN <<EOR
+#!/bin/bash
 	apt-get -yq update
     apt-get -yq install libusb-1.0-0 swig libasound2 libuuid1 libicu72 busybox
 
@@ -39,9 +39,8 @@ RUN <<EOR
     cd /usr/bin     && rm -rf !(busybox|bash) # Must come last
 
     /bin/busybox --install -s
+    rm /bin/bash
 EOR
-SHELL ["/bin/sh", "-c"]
-RUN rm /bin/bash
 
 ###################################################
 # Building from scratch with a copy removes empty space.
