@@ -1,8 +1,8 @@
 # sdr-connect 
 ## Containerized SDRconnect server.  
 ### Allows for remote operation of an SDRplay device
-- Version 1.0.5  of SDRconnect.
-- Based on Debian Linux, bookworm.  Size 136 MB.
+- Version 1.0.7  of SDRconnect.
+- Based on Debian Linux, bookworm.  Size 195 MB.
 
 ### Running with docker compose yml file:
 ```
