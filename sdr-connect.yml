@@ -1,0 +1,17 @@
+name: sdr-connect
+services:
+  rsp-dx:
+    container_name: rsp-dx
+    image: dgadams/sdr-connect
+    restart: unless-stopped
+    ports:
+      - 50000:50000
+    devices:
+      - /dev/bus/usb
+    command:
+      - "--port=50000"
+      - "--centerfrequency=95500000"
+      - "--antenna=1"
+      - "--hwser=2103083B44"
+
+ 
