@@ -1,7 +1,8 @@
 #  Dockerfile for building sdrconnect docker image
 #
-#  D.G. Adams   2026-02-13    Added Debian Trixie support
-#               2026-02-12    updated to sdr-connect 1.0.7
+#  D.G. Adams   2026-04-14    Updated to SDRconnect 1.0.8
+#               2026-02-13    Added Debian Trixie support
+#               2026-02-12    Updated to SDRconnect 1.0.7
 #               2025-12-05    Pulled muntz.sh inside Dockerfile
 #               2025-01-18    Multi level build using scratch.
 #
