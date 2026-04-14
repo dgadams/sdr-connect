@@ -1,3 +1,0 @@
-Note that this Dockerfile builds correctly, but the 
-container doesn't fails during execution.
-This is an issue with non-glibc libraries in Alpine.
