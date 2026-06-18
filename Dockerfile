@@ -1,6 +1,7 @@
 #  Dockerfile for building sdrconnect docker image
 #
-#  D.G. Adams   2026-04-14    Updated to SDRconnect 1.0.8
+#  D.G. Adams   2026-06-18    SDRconnect 1.09
+#               2026-04-14    Updated to SDRconnect 1.0.8
 #               2026-02-13    Added Debian Trixie support
 #               2026-02-12    Updated to SDRconnect 1.0.7
 #               2025-12-05    Pulled muntz.sh inside Dockerfile
@@ -13,17 +14,17 @@
 FROM debian:trixie-slim AS dga-build
 WORKDIR /sdr
 
-ADD https://www.sdrplay.com/software/sdrconnect_linux-x64_a4b8da76b.tar.gz sdrconnect.tar.gz
+ADD https://www.sdrplay.com/software/sdrconnect_linux-x64_d34bf923c.tar.gz sdrconnect.tar.gz
 RUN <<EOR
 #!/bin/bash
     shopt -s extglob        # bash extesion for rm -rf !(except-files|...)
     apt-get -yq update
     apt-get -yq install gzip libusb-1.0-0 libasound2t64 libuuid1 libicu76 libudev1 libmp3lame-dev busybox
     tar xzf sdrconnect.tar.gz
-    
+
 #   remove unneeded files except ...
     rm -rf !(SDRconnect|lib*|swig*)
-    
+
     cd /usr/lib/x86_64-linux-gnu
     EXC="!(libc.*|ld-linux*|libresolv.*|libdl.*|librt.*|libm.*|libpthread.*|libmp3*|libcap*"
     EXC+="|libasound*|libusb*|libicu*|libudev*|libuuid*|libstdc++*|libgcc_s*)"
