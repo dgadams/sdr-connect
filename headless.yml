@@ -1,0 +1,10 @@
+name: sdrconnect-headless
+services:
+  sdrconnect-headless:
+    container_name: sdrconnect-headless
+    image: dgadams/sdrconnect-headless
+    restart: unless-stopped
+    init: true
+    devices:
+      - /dev/bus/usb
+    network_mode: host

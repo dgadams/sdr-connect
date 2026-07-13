@@ -1,8 +1,8 @@
-name: sdr-connect
+name: sdrconnect
 services:
   rsp-dx:
     container_name: rsp-dx
-    image: dgadams/sdr-connect
+    image: dgadams/sdrconnect
     restart: unless-stopped
     ports:
       - 50000:50000
