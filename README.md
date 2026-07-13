@@ -2,7 +2,7 @@
 ## Containerized SDRconnect server.
 ### Allows for remote operation of an SDRplay device
 - Version 1.0.9  of SDRconnect.
-- Based on Debian Linux Trixie.  
+- Based on Debian Linux Trixie.
 - There is a headless websock version dgadams/sdrconnect-headless
 
 
@@ -14,7 +14,7 @@
 # Add: SUBSYSTEMS=="usb", ATTRS{idVendor}=="1df7", MODE="0666"
 # to a file in /etc/udev/rules.d to allow read/write access.
 #
-# 
+#
 #
 name: sdrconnect
 
@@ -54,8 +54,10 @@ services:
     network_mode: host
 ```
 #### Notes:
- - Caution if running other docker containers that talk to the sdrplay device.
-He who gets the resource first, wins.
+ - Caution if running other docker containers that talk to the sdrplay device
+    he who gets the resource first, wins.
  - Headless and sdrconnect cannot use the same sdrplay device at the same time.
+ - But a headless container can run at the same time as the server container,
+   they just need to use seperate SDR devices.
  - This project uses licensed software from https://sdrplay.com.
-See the license.txt file.
+    See the license.txt file.
