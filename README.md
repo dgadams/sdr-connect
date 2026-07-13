@@ -56,8 +56,7 @@ services:
 #### Notes:
  - Caution if running other docker containers that talk to the sdrplay device
     he who gets the resource first, wins.
- - Headless and sdrconnect cannot use the same sdrplay device at the same time.
- - But a headless container can run at the same time as the server container,
-   they just need to use seperate SDR devices.
+ - Headless and Server containers can run at the same time but depending on your websocket application
+   they may not be able to share the same SDR device.
  - This project uses licensed software from https://sdrplay.com.
     See the license.txt file.

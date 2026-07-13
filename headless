@@ -23,12 +23,7 @@ RUN <<EOR
     tar xzf sdrconnect.tar.gz
 
 #   remove unneeded files except ...
-    rm -rf !(SDRconnect_*|lib*|swig*)
-
-#    cd /usr/lib/x86_64-linux-gnu
-#    EXC="!(libc.*|ld-linux*|libresolv.*|libdl.*|librt.*|libm.*|libpthread.*"
-#    EXC+="|libasound*|libusb*|libicu*|libudev*|libuuid*|libstdc++*|libgcc_s*)"
-#    rm -rf $EXC
+    rm -rf !(SDRconnect_headless|lib*|swig*)
 
 #   remove uneeded directories except ...
     cd /            && rm -rf !(bin|dev|etc|lib|lib64|proc|run|sbin|sdr|sys|usr)
