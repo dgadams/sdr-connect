@@ -7,4 +7,6 @@ services:
     init: true
     devices:
       - /dev/bus/usb
+    command:
+      - "--websocket_port=5454"
     network_mode: host

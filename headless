@@ -13,17 +13,18 @@
 #
 FROM debian:trixie-slim AS dga-build
 WORKDIR /sdr
+SHELL ["/bin/bash", "-c"]
 
 ADD https://www.sdrplay.com/software/sdrconnect_linux-x64_d34bf923c.tar.gz sdrconnect.tar.gz
+
 RUN <<EOR
-#!/bin/bash
     shopt -s extglob        # bash extesion for rm -rf !(except-files|...)
     apt-get -yq update
     apt-get -yq install gzip libusb-1.0-0 libasound2t64 libuuid1 libicu76 libudev1 libmp3lame-dev libfontconfig1 busybox
     tar xzf sdrconnect.tar.gz
 
 #   remove unneeded files except ...
-    rm -rf !(SDRconnect_headless|lib*|swig*)
+    rm -rf !(SDRconnect_*|lib*|swig*)
 
 #   remove uneeded directories except ...
     cd /            && rm -rf !(bin|dev|etc|lib|lib64|proc|run|sbin|sdr|sys|usr)
@@ -43,4 +44,4 @@ EOR
 FROM scratch
 COPY --from=dga-build / /
 USER nobody
-ENTRYPOINT ["/sdr/SDRconnect_headless", "--websocket_port=5454"]
+ENTRYPOINT ["/sdr/SDRconnect_headless"]

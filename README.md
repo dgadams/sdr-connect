@@ -43,15 +43,17 @@ SUBSYSTEMS=="usb", ATTRS{idVendor}=="1df7", MODE:="0666"
 ### example docker compose file for headless websocket version
 ```
 name: sdrconnect-headless
-services:
-  sdrconnect-headless:
-    container_name: sdrconnect-headless
-    image: dgadams/sdrconnect-headless
-    restart: unless-stopped
-    init: true
-    devices:
-      - /dev/bus/usb
-    network_mode: host
+    services:
+      sdrconnect-headless:
+        container_name: sdrconnect-headless
+        image: dgadams/sdrconnect-headless
+        restart: unless-stopped
+        init: true
+        devices:
+          - /dev/bus/usb
+        command:
+          - "--websocket_port=5454"
+        network_mode: host
 ```
 #### Notes:
  - Caution if running other docker containers that talk to the sdrplay device
