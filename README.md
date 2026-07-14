@@ -1,5 +1,5 @@
-# sdr-connect
-## Containerized SDRconnect server.
+# sdrconnect
+## Containerized SDRconnect server for AMD64.
 ### Allows for remote operation of an SDRplay device
 - Version 1.0.9  of SDRconnect.
 - Based on Debian Linux Trixie.
@@ -54,6 +54,7 @@ services:
       - "--websocket_port=5454"
 ```
 #### Notes:
+ - This is built for AMD64 architecture CPUs and does not work on raspberry-pi.
  - Caution if running other docker containers that talk to the sdrplay device
    he who gets the resource first, wins.
  - The commands in each compose script are required.  See help.txt for possible
