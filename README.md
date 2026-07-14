@@ -3,10 +3,12 @@
 ### Allows for remote operation of an SDRplay device
 - Version 1.0.9  of SDRconnect.
 - Based on Debian Linux Trixie.
-- There is a headless websock version dgadams/sdrconnect-headless
+- This image allows either server or websocket mode depending
+  on the compose script used.  The image contains both SDRconnect
+  and SDRconnect_headless.  The command section of each compose script
+  run the executable and provide needed arguments.  
 
-
-### Running with docker compose yml file:
+### Running server mode with docker compose yml file:
 ```
 #  D.G. Adams 2025-08-06
 #
@@ -17,23 +19,18 @@
 #
 #
 name: sdrconnect
-
 services:
   rsp-dx:
     container_name: rsp-dx
-    image: dgadams/sdrconnect:latest
+    image: dgadams/sdrconnect
     restart: unless-stopped
-    ports:
-      - 50000:50000
+    network_mode: host
     devices:
       - /dev/bus/usb
     command:
+      - "/sdr/SDRconnect"
+      - "--server"
       - "--port=50000"
-      - "--centerfrequency=95500000"
-      - "--antenna=1"
-      - "--hwser=2103083B44"
-#
-# Commands are optional.  See help.txt for a list of sdrConnect command line arguments.
 ```
 ### example /etc/udev/rules.d/66-sdrplay.rules file that must live on the docker host machine.
 ```
@@ -43,21 +40,24 @@ SUBSYSTEMS=="usb", ATTRS{idVendor}=="1df7", MODE:="0666"
 ### example docker compose file for headless websocket version
 ```
 name: sdrconnect-headless
-    services:
-      sdrconnect-headless:
-        container_name: sdrconnect-headless
-        image: dgadams/sdrconnect-headless
-        restart: unless-stopped
-        init: true
-        devices:
-          - /dev/bus/usb
-        command:
-          - "--websocket_port=5454"
-        network_mode: host
+services:
+  sdrconnect-headless:
+    container_name: sdrconnect-headless
+    image: dgadams/sdrconnect
+    restart: unless-stopped
+    init: true
+    network_mode: host
+    devices:
+      - /dev/bus/usb
+    command: 
+      - "/sdr/SDRconnect_headless"
+      - "--websocket_port=5454"
 ```
 #### Notes:
  - Caution if running other docker containers that talk to the sdrplay device
-    he who gets the resource first, wins.
+   he who gets the resource first, wins.
+ - The commands in each compose script are required.  See help.txt for possible
+   other commands when running in server mode.
  - Headless and Server containers can run at the same time but depending on your websocket application
    they may not be able to share the same SDR device.
  - This project uses licensed software from https://sdrplay.com.

@@ -13,21 +13,26 @@
 #
 FROM debian:trixie-slim AS dga-build
 WORKDIR /sdr
+SHELL ["/bin/bash", "-c"]
 
 ADD https://www.sdrplay.com/software/sdrconnect_linux-x64_d34bf923c.tar.gz sdrconnect.tar.gz
+
 RUN <<EOR
-#!/bin/bash
     shopt -s extglob        # bash extesion for rm -rf !(except-files|...)
     apt-get -yq update
-    apt-get -yq install gzip libusb-1.0-0 libasound2t64 libuuid1 libicu76 libudev1 libmp3lame-dev busybox
+    apt-get -yq install gzip libusb-1.0-0 libasound2t64 libuuid1 libicu76 libudev1 libmp3lame-dev libfontconfig1 busybox
     tar xzf sdrconnect.tar.gz
 
-#   remove unneeded files except ...
-    rm -rf !(SDRconnect|lib*|swig*)
+#   remove unneeded files ...
+    rm -rf !(SDRconnect*|lib*|swig*)
 
     cd /usr/lib/x86_64-linux-gnu
-    EXC="!(libc.*|ld-linux*|libresolv.*|libdl.*|librt.*|libm.*|libpthread.*|libmp3*|libcap*"
-    EXC+="|libasound*|libusb*|libicu*|libudev*|libuuid*|libstdc++*|libgcc_s*)"
+    EXC="!(libc.*|ld-linux*|libresolv.*|libdl.*|librt.*|libm.*|libpthread.*|libmp3*"
+    EXC+="|libasound*|libusb*|libicu*|libudev*|libuuid*|libstdc++*|libgcc_s*|libcap*"
+    EXC+="|libssl*|libcrypto*|libz*"
+#    EXC+="|libfontconfig*|libfreetype*|libexpat*"      # not needed for server mode
+#    EXC+="|libtinfo*|libselinux*|libpcre*"             # needed for bash
+    EXC+=")"
     rm -rf $EXC
 
 #   remove uneeded directories except ...
@@ -48,4 +53,4 @@ EOR
 FROM scratch
 COPY --from=dga-build / /
 USER nobody
-ENTRYPOINT ["/sdr/SDRconnect", "--server"]
+# No entrypoint.  Use command in docker compose to run /sdr/SDRconnect or /sdr/SDRconnect_headless

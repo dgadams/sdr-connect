@@ -2,11 +2,12 @@ name: sdrconnect-headless
 services:
   sdrconnect-headless:
     container_name: sdrconnect-headless
-    image: dgadams/sdrconnect-headless
+    image: dgadams/sdrconnect
     restart: unless-stopped
     init: true
+    network_mode: host
     devices:
       - /dev/bus/usb
-    command:
+    command: 
+      - "/sdr/SDRconnect_headless"
       - "--websocket_port=5454"
-    network_mode: host

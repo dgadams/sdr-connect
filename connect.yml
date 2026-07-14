@@ -4,11 +4,12 @@ services:
     container_name: rsp-dx
     image: dgadams/sdrconnect
     restart: unless-stopped
-    ports:
-      - 50000:50000
+    network_mode: host
     devices:
       - /dev/bus/usb
     command:
+      - "/sdr/SDRconnect"
+      - "--server"
       - "--port=50000"
       - "--centerfrequency=95500000"
       - "--antenna=1"
