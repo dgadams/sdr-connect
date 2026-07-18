@@ -6,7 +6,8 @@
 - This image allows either server or websocket mode depending
   on the compose script used.  The image contains both SDRconnect
   and SDRconnect_headless.  The command section of each compose script
-  run the executable and provide needed arguments.  
+  run the executable and provide needed arguments.
+ - Github link: https://github.com/dgadams/sdr-connect
 
 ### Running server mode with docker compose yml file:
 ```
@@ -32,11 +33,6 @@ services:
       - "--server"
       - "--port=50000"
 ```
-### example /etc/udev/rules.d/66-sdrplay.rules file that must live on the docker host machine.
-```
-SUBSYSTEMS=="usb", ATTRS{idVendor}=="1df7", MODE:="0666"
-
-```
 ### example docker compose file for headless websocket version
 ```
 name: sdrconnect-headless
@@ -49,12 +45,16 @@ services:
     network_mode: host
     devices:
       - /dev/bus/usb
-    command: 
+    command:
       - "/sdr/SDRconnect_headless"
       - "--websocket_port=5454"
 ```
+### example /etc/udev/rules.d/66-sdrplay.rules file that must live on the docker host machine.
+```
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1df7", MODE:="0666"
+```
 #### Notes:
- - This is built for AMD64 architecture CPUs and does not work on raspberry-pi.
+ - This is an AMD64 image and will not work on a raspberry pi.
  - Caution if running other docker containers that talk to the sdrplay device
    he who gets the resource first, wins.
  - The commands in each compose script are required.  See help.txt for possible
