@@ -1,7 +1,7 @@
 # sdrconnect
 ## Containerized SDRconnect server for AMD64.
 ### Allows for remote operation of an SDRplay device
-- Version 1.0.9  of SDRconnect.
+- Version 1.0.10  of SDRconnect.
 - Based on Debian Linux Trixie.
 - This image allows either server or websocket mode depending
   on the compose script used.  The image contains both SDRconnect

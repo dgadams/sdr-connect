@@ -1,7 +1,6 @@
 #  Dockerfile for building sdrconnect docker image
 #
-#  D.G. Adams   2026-08-21    SDRconnect 1.0.10
-#               2026-06-18    SDRconnect 1.0.9
+#  D.G. Adams   2026-06-18    SDRconnect 1.09
 #               2026-04-14    Updated to SDRconnect 1.0.8
 #               2026-02-13    Added Debian Trixie support
 #               2026-02-12    Updated to SDRconnect 1.0.7
@@ -16,7 +15,7 @@ FROM debian:trixie-slim AS dga-build
 WORKDIR /sdr
 SHELL ["/bin/bash", "-c"]
 
-ADD https://www.sdrplay.com/software/sdrconnect_linux-x64_93b44446f.tar.gz sdrconnect.tar.gz
+ADD https://www.sdrplay.com/software/sdrconnect_linux-x64_d34bf923c.tar.gz sdrconnect.tar.gz
 
 RUN <<EOR
     shopt -s extglob        # bash extesion for rm -rf !(except-files|...)
