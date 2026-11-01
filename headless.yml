@@ -11,3 +11,10 @@ services:
     command: 
       - "/sdr/SDRconnect_headless"
       - "--websocket_port=5454"
+
+    healthcheck:
+      test: ["CMD", "pidof", "/sdr/SDRconnect_headless"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

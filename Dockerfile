@@ -31,7 +31,7 @@ RUN <<EOR
     EXC="!(libc.*|ld-linux*|libresolv.*|libdl.*|librt.*|libm.*|libpthread.*|libmp3*"
     EXC+="|libasound*|libusb*|libicu*|libudev*|libuuid*|libstdc++*|libgcc_s*|libcap*"
     EXC+="|libssl*|libcrypto*|libz*"
-#    EXC+="|libfontconfig*|libfreetype*|libexpat*"      # not needed for server mode
+#    EXC+="|libfontconfig*|libfreetype*|libexpat*"      # comment out for server mode
 #    EXC+="|libtinfo*|libselinux*|libpcre*"             # needed for bash
     EXC+=")"
     rm -rf $EXC
