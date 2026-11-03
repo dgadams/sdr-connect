@@ -5,13 +5,23 @@ services:
     image: dgadams/sdrconnect
     restart: unless-stopped
     init: true
-    network_mode: host
+    ports:
+      - 5454:5454
     devices:
       - /dev/bus/usb
+
+#   headless must run as root and have some volumes.    
+    user: 0:0
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+      - /run/udev:/run/udev:ro
+      - /dev/shm:/dev/shm
+    
     command: 
       - "/sdr/SDRconnect_headless"
-      - "--websocket_port=5454"
+#      - "--websocket_port=5454"
 
+#   state of health docker healthcheck
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:

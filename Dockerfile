@@ -30,7 +30,7 @@ RUN <<EOR
     cd /usr/lib/x86_64-linux-gnu
     EXC="!(libc.*|ld-linux*|libresolv.*|libdl.*|librt.*|libm.*|libpthread.*|libmp3*"
     EXC+="|libasound*|libusb*|libicu*|libudev*|libuuid*|libstdc++*|libgcc_s*|libcap*"
-    EXC+="|libssl*|libcrypto*|libz*"
+    EXC+="|libssl*|libcrypto*|libz*|libudev*"
 #    EXC+="|libfontconfig*|libfreetype*|libexpat*"      # comment out for server mode
 #    EXC+="|libtinfo*|libselinux*|libpcre*"             # needed for bash
     EXC+=")"
