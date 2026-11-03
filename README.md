@@ -9,46 +9,6 @@
   run the executable and provide needed arguments.
  - Github link: https://github.com/dgadams/sdr-connect
 
-### Running server mode with docker compose yml file:
-```
-#  D.G. Adams 2025-08-06
-#
-# The SDR devices need USB read/write permissions.
-# Add: SUBSYSTEMS=="usb", ATTRS{idVendor}=="1df7", MODE="0666"
-# to a file in /etc/udev/rules.d to allow read/write access.
-#
-#
-#
-name: sdrconnect
-services:
-  rsp-dx:
-    container_name: rsp-dx
-    image: dgadams/sdrconnect
-    restart: unless-stopped
-    network_mode: host
-    devices:
-      - /dev/bus/usb
-    command:
-      - "/sdr/SDRconnect"
-      - "--server"
-      - "--port=50000"
-```
-### example docker compose file for headless websocket version
-```
-name: sdrconnect-headless
-services:
-  sdrconnect-headless:
-    container_name: sdrconnect-headless
-    image: dgadams/sdrconnect
-    restart: unless-stopped
-    init: true
-    network_mode: host
-    devices:
-      - /dev/bus/usb
-    command:
-      - "/sdr/SDRconnect_headless"
-      - "--websocket_port=5454"
-```
 ### example /etc/udev/rules.d/66-sdrplay.rules file that must live on the docker host machine.
 ```
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="1df7", MODE:="0666"
