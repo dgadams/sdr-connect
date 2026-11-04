@@ -5,7 +5,7 @@ services:
     image: dgadams/sdrconnect
     restart: unless-stopped
     devices:
-      - /dev/bus/usb
+      - /dev/bus/usb:/dev/bus/usb
     ports:
       - 50000:50000
     command:
@@ -16,10 +16,8 @@ services:
       - "--antenna=1"
       - "--hwser=2103083B44"
 
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     healthcheck:
-      test: timeout 2 nc host.docker.internal 50000 || [ $$? -eq 143 ]
+      test: timeout 2 nc localhost 50000 || [ $$? -eq 143 ]
       interval: 30s
       timeout: 5s
       retries: 3

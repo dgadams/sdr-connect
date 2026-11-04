@@ -8,7 +8,7 @@ services:
     ports:
       - 5454:5454
     devices:
-      - /dev/bus/usb
+      - /dev/bus/usb:/dev/bus/usb
 
 #   headless must run as root and have some volumes.    
     user: 0:0
@@ -19,13 +19,11 @@ services:
     
     command: 
       - "/sdr/SDRconnect_headless"
-#      - "--websocket_port=5454"
+      - "--websocket_port=5454"
 
 #   state of health docker healthcheck
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     healthcheck:
-      test: echo -n | nc host.docker.internal 5454
+      test: echo -n | nc localhost 5454
       interval: 30s
       timeout: 10s
       retries: 3
