@@ -1,6 +1,6 @@
 #  Dockerfile for building sdrconnect docker image
 #
-#  D.G. Adams   2026-11-10    Slim version using Claude AI
+#  D.G. Adams   2026-11-05    Slim version using Claude AI
 #               2026-08-21    SDRconnect 1.0.10
 #
 # The SDR devices need USB read/write permissions.
@@ -8,75 +8,99 @@
 # to a file in the docker host /etc/udev/rules.d to allow read/write access.
 
 FROM debian:trixie-slim AS stage1
-
-# Need to use bash to allow shopt -s nullglob for allow-list below
-SHELL ["/bin/bash", "-c"]
+WORKDIR /sdr
 
 # libicu76 dropped: see DOTNET_SYSTEM_GLOBALIZATION_INVARIANT below.
 RUN apt-get -yq update && apt-get -yq install --no-install-recommends \
-        gzip libusb-1.0-0 libasound2t64 libuuid1 libudev1 libmp3lame0 \
-        libfontconfig1 busybox
+        gzip libusb-1.0-0 libasound2t64 libuuid1 libudev1 libmp3lame0 busybox
 
-WORKDIR /sdr
 ADD https://www.sdrplay.com/software/sdrconnect_linux-x64_93b44446f.tar.gz sdrconnect.tar.gz
 
+# SkiaSharp and HarfBuzzSharp are not needed, so they are removed before copying
+RUN tar xzf sdrconnect.tar.gz && rm -f sdrconnect.tar.gz libSkiaSharp.so libHarfBuzzSharp.so
+
 ###################################################
-# Build the final filesystem in /out by copying IN only what is needed:
-#   - SDRconnect, SDRconnect_headless, swig_bindings.so and the other app files
-#   - an allow-list of libraries (the .NET runtime loads several with dlopen,
-#     which ldd cannot see, so these are named here)
-#   - every library ldd finds for the binaries, as a safety net
-#   - Debian's dynamic busybox with all applets, plus /etc/passwd and /etc/group
+# Build the final filesystem in /out by copying IN only what is needed.
 # Nothing is deleted, so scratch gets a minimal, clean filesystem.
+#
+# Steps:  1. copy the files in 
+#         2. busybox and the loader
+#         3. check that /out is self-contained
 
+ENV OUT=/out
+
+# ---------------------------------------------------------------
+# Step 1: directory layout, then copy in everything on the lists below.
+# The paths are relative to /, and cp --parents recreates each one under /out.
+# A name that does not exist is skipped, and reported in the build log
+# (look for "skipping missing").
 RUN <<'EOR'
+#!/bin/bash
     set -euo pipefail
-    shopt -s nullglob
+    shopt -s nullglob       # unmatched globs vanish
 
-    OUT=/out
-    LIBDIR=/usr/lib/x86_64-linux-gnu
-    mkdir -p $OUT$LIBDIR $OUT/usr/bin $OUT/lib64 $OUT/etc $OUT/sdr $OUT/tmp
-    chmod 1777 $OUT/tmp
+#   --- layout: same merged-/usr symlinks as Debian ---
+    mkdir -p $OUT/lib64 $OUT/tmp
+    chmod 1777 $OUT/tmp         # .NET expects a /tmp
     ln -s usr/lib $OUT/lib
     ln -s usr/bin $OUT/bin
 
-#   app files. libSkiaSharp.so and libHarfBuzzSharp.so are left out on purpose.
-    tar xzf sdrconnect.tar.gz
-    for f in SDRconnect* lib* swig*; do
-        case $f in libSkiaSharp.so|libHarfBuzzSharp.so) continue ;; esac
-        cp -a "$f" $OUT/sdr/
-    done
+    cd /
 
-#   allow-list of libraries, copied with their symlinks.
-#   some of these libraries are loaded by .NET and aren't found by ldd below
-    cd $LIBDIR
+#   the application: SDRconnect, SDRconnect_headless, swig_bindings.so, ...
+    APP=( sdr/{SDRconnect*,swig*,lib*} )
+
+#   Every library the image needs is named here. Step 3 fails the build if one is missing.
+#   The .NET runtime loads several of them at runtime. ld-linux is left out: step 2 adds it.
+    M=usr/lib/x86_64-linux-gnu
     LIBS=(
-        libc.* libm.* libdl.* librt.* libpthread.* libresolv.*
-        libstdc++* libgcc_s*
-        libusb* libudev* libcap* libuuid* libasound* libmp3*
-        libssl* libcrypto* libz*
+        $M/{libc.*,libm.*,libdl.*,librt.*,libpthread.*,libresolv.*}   # C library
+        $M/{libstdc++*,libgcc_s*}                                     # C++ runtime
+        $M/{libssl*,libcrypto*,libz*}                                 # .NET TLS, compression
+        $M/{libusb*,libudev*,libcap*}                                 # USB access
+        $M/{libasound*,libmp3*,libuuid*}                              # audio, mp3, uuid
     )
-    cp -a "${LIBS[@]}" $OUT$LIBDIR/
-    
-#   busybox: copy the dynamic binary, then create every applet symlink
-    cp -a /usr/bin/busybox $OUT/usr/bin/busybox
-    /usr/bin/busybox --install -s $OUT/usr/bin
 
 #   users for USER nobody
-    cp -a /etc/passwd /etc/group $OUT/etc/
+    DATA=( etc/{passwd,group} )
 
-#   safety net: copy any library ldd finds that isn't already in /out
-#   (this also supplies the /lib64 loader and busybox's libraries)
-    for f in $OUT/sdr/SDRconnect* $OUT/sdr/*.so /usr/bin/busybox; do
-        ldd "$f" || true
-    done > /tmp/ldd.txt
+#   keep only the names that exist, and say which ones were skipped
+    KEEP=()
+    for p in "${APP[@]}" "${LIBS[@]}" "${DATA[@]}"; do
+        if [ -e "$p" ]; then KEEP+=("$p"); else echo "skipping missing: $p"; fi
+    done
 
-#   fail the build if any library is missing
-    grep 'not found' /tmp/ldd.txt && { echo "missing libraries"; exit 1; }
+    cp -a --parents -t $OUT "${KEEP[@]}"
+    cp -a --parents -t $OUT usr/bin/busybox
+EOR
 
-#   copy every library path in the ldd output
-    for lib in $(grep -o '/[^ ]*' /tmp/ldd.txt | sort -u); do
-        [ -e "$OUT$lib" ] || cp -L --parents "$lib" $OUT
+# ---------------------------------------------------------------
+# Step 2: busybox applets, and the dynamic loader.
+# The loader is the one library the lists above leave out.
+RUN <<'EOR'
+#!/bin/bash
+    set -euo pipefail
+
+    /usr/bin/busybox --install -s $OUT/usr/bin      # every applet goes in /usr/bin
+    cp -L --parents /lib64/ld-linux-x86-64.so.2 $OUT
+EOR
+
+# ---------------------------------------------------------------
+# Step 3: check /out is self-contained. Libraries are resolved against /out only,
+# as in the final image. The build stops on any missing library.
+# Only the app and busybox are checked; the dlopen'd libraries are not.
+RUN <<'EOR'
+#!/bin/bash
+    set -euo pipefail
+
+    CHECK=(
+        /usr/bin/busybox
+        $(find $OUT/sdr -type f \( -executable -o -name '*.so*' \) | sed "s#^$OUT##")
+    )
+    for f in "${CHECK[@]}"; do
+        if chroot $OUT /lib64/ld-linux-x86-64.so.2 --list "$f" 2>/dev/null | grep 'not found'; then
+            echo "^ MISSING LIBS for $f"; exit 1
+        fi
     done
 EOR
 
