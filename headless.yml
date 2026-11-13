@@ -1,7 +1,7 @@
-name: sdrconnect-headless
+name: headless
 services:
-  sdrconnect-headless:
-    container_name: sdrconnect-headless
+  headless:
+    container_name: headless
     image: dgadams/sdrconnect
     restart: unless-stopped
     init: true
@@ -10,13 +10,12 @@ services:
     devices:
       - /dev/bus/usb:/dev/bus/usb
 
-#   headless must run as root and have some volumes.    
-    user: 0:0
-    volumes:
-      - /dev/bus/usb:/dev/bus/usb
-      - /run/udev:/run/udev:ro
-      - /dev/shm:/dev/shm
-    
+    user: sdruser
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+   
     command: 
       - "/sdr/SDRconnect_headless"
       - "--websocket_port=5454"

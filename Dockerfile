@@ -6,6 +6,8 @@
 # The SDR devices need USB read/write permissions.
 # Add: SUBSYSTEMS=="usb", ATTRS{idVendor}=="1df7", MODE="0666"
 # to a file in the docker host /etc/udev/rules.d to allow read/write access.
+# CHANGED: Documented cgroup requirement for non-root USB firmware re-enumeration.
+# In docker-compose, include device_cgroup_rules: ['c 189:* rmw'] when running non-root.
 
 #######################################################################
 # Stage 1: install SDRconnect and its libraries into a clean Debian,
@@ -19,6 +21,11 @@ WORKDIR /sdr
 RUN apt-get -yq update && apt-get -yq install --no-install-recommends \
         gzip libusb-1.0-0 libasound2t64 libuuid1 libudev1 libmp3lame0 \
         busybox
+
+# CHANGED: Register 'sdruser' (1000:1000) with /tmp as its home directory
+# so /etc/passwd and /etc/group work out-of-the-box without creating /home.
+RUN groupadd -g 1000 sdruser && \
+    useradd -u 1000 -g 1000 -d /tmp -s /bin/sh sdruser
 
 ADD https://www.sdrplay.com/software/sdrconnect_linux-x64_93b44446f.tar.gz \
     sdrconnect.tar.gz
@@ -48,7 +55,7 @@ RUN <<'EOR'
 
     # --- /out layout: same merged-/usr symlinks as Debian ---
     mkdir -p $OUT/lib64 $OUT/tmp
-    chmod 1777 $OUT/tmp         # .NET expects a /tmp
+    chmod 1777 $OUT/tmp         # .NET and sdruser use /tmp as writable HOME
     ln -s usr/lib $OUT/lib
     ln -s usr/bin $OUT/bin
 
@@ -80,7 +87,7 @@ RUN <<'EOR'
         usr/lib/*-linux-gnu/{libasound,libmp3,libuuid}*
     )
 
-    # Users for USER nobody
+    # Users for USER nobody and USER sdruser
     DATA=(
         etc/passwd etc/group
     )
@@ -97,6 +104,11 @@ RUN <<'EOR'
 
     cp -a --parents -t $OUT "${KEEP[@]}"
     cp -a --parents -t $OUT usr/bin/busybox
+
+    # CHANGED: Ensure /out/sdr is owned by 1000:1000 and readable/executable
+    # by all users so both 'sdruser' and 'nobody' can run it.
+    chmod -R a+rX $OUT/sdr $OUT/usr/lib
+    chown -R 1000:1000 $OUT/sdr
 EOR
 
 # ---------------------------------------------------------------------
@@ -140,8 +152,8 @@ EOR
 FROM scratch
 
 COPY --from=install /out/ /
-USER nobody
-
+USER sdruser
+WORKDIR /sdr
 # Skip ICU (saves ~35MB). Remove this line if culture-specific behaviour
 # breaks.
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
