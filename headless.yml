@@ -19,11 +19,3 @@ services:
     command: 
       - "/sdr/SDRconnect_headless"
       - "--websocket_port=5454"
-
-#   state of health docker healthcheck
-    healthcheck:
-      test: echo -n | nc localhost 5454
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s

@@ -6,8 +6,8 @@
 # The SDR devices need USB read/write permissions.
 # Add: SUBSYSTEMS=="usb", ATTRS{idVendor}=="1df7", MODE="0666"
 # to a file in the docker host /etc/udev/rules.d to allow read/write access.
-# CHANGED: Documented cgroup requirement for non-root USB firmware re-enumeration.
-# In docker-compose, include device_cgroup_rules: ['c 189:* rmw'] when running non-root.
+# When running non-root, USB firmware re-enumeration also needs, in docker-compose:
+#   device_cgroup_rules: ['c 189:* rmw']
 
 #######################################################################
 # Stage 1: install SDRconnect and its libraries into a clean Debian,
@@ -17,45 +17,37 @@ FROM debian:trixie-slim AS install
 
 WORKDIR /sdr
 
-# libicu76 is dropped: see DOTNET_SYSTEM_GLOBALIZATION_INVARIANT below.
+# libicu is not installed: see DOTNET_SYSTEM_GLOBALIZATION_INVARIANT below.
+# tar and gzip are already part of debian-slim.
 RUN apt-get -yq update && apt-get -yq install --no-install-recommends \
-        gzip libusb-1.0-0 libasound2t64 libuuid1 libudev1 libmp3lame0 \
-        busybox
+        libusb-1.0-0 libasound2t64 libuuid1 libudev1 libmp3lame0 busybox
 
-# CHANGED: Register 'sdruser' (1000:1000) with /tmp as its home directory
-# so /etc/passwd and /etc/group work out-of-the-box without creating /home.
-RUN groupadd -g 1000 sdruser && \
-    useradd -u 1000 -g 1000 -d /tmp -s /bin/sh sdruser
-
+# The ADD assumes the location of sdrconnect is correct but it has
+# changed between revisions.  This works for 1.0.10.
+# SkiaSharp and HarfBuzzSharp are not needed, so they are removed.
 ADD https://www.sdrplay.com/software/sdrconnect_linux-x64_93b44446f.tar.gz \
     sdrconnect.tar.gz
-
-# SkiaSharp and HarfBuzzSharp are not needed, so they are removed.
 RUN tar xzf sdrconnect.tar.gz \
     && rm -f sdrconnect.tar.gz libSkiaSharp.so libHarfBuzzSharp.so
 
 #----------------------------------------------------------------------
 # Build the final filesystem in /out by copying IN only what is needed.
 # Nothing is deleted, so scratch gets a minimal, clean filesystem.
-#
-#   Step 1: copy in the files listed below
-#   Step 2: add the busybox applets and the dynamic loader
-#   Step 3: check that /out is self-contained
+# Paths are relative to /; cp --parents recreates each one under /out.
+# A missing plain path fails the build; a glob that matches nothing is
+# dropped (nullglob), and the check in the next RUN catches any library
+# the app actually needs.
 #----------------------------------------------------------------------
 ENV OUT=/out
 
-# ---------------------------------------------------------------------
-# Step 1: create the directory layout, then copy in the listed paths.
-# Paths are relative to /; cp --parents recreates each one under /out.
-# Missing paths are skipped and reported ("skipping missing" in the log).
 RUN <<'EOR'
 #!/bin/bash
     set -euo pipefail
-    shopt -s nullglob       # a glob that matches nothing is dropped
+    shopt -s nullglob
 
     # --- /out layout: same merged-/usr symlinks as Debian ---
-    mkdir -p $OUT/lib64 $OUT/tmp
-    chmod 1777 $OUT/tmp         # .NET and sdruser use /tmp as writable HOME
+    mkdir -p $OUT/lib64 $OUT/tmp $OUT/etc
+    chmod 1777 $OUT/tmp         # writable HOME for .NET
     ln -s usr/lib $OUT/lib
     ln -s usr/bin $OUT/bin
 
@@ -66,67 +58,43 @@ RUN <<'EOR'
         sdr/SDRconnect* sdr/swig* sdr/lib*
     )
 
-    # Every library the image needs is named here; step 3 fails the build
-    # if one is missing. The .NET runtime loads several of them at runtime.
-    # ld-linux is left out: step 2 adds it. The */ matches the one
-    # architecture directory (x86_64-linux-gnu).
+    # Every library the image needs. ld-linux is added separately below.
+    # The */ matches the one architecture directory (x86_64-linux-gnu).
     LIBS=(
         # C library
         usr/lib/*-linux-gnu/{libc.,libm.,libdl.,librt.,libpthread.,libresolv.}*
-
         # C++ runtime
         usr/lib/*-linux-gnu/{libstdc++,libgcc_s}*
-
         # .NET TLS and compression
         usr/lib/*-linux-gnu/{libssl,libcrypto,libz}*
-
         # USB access
         usr/lib/*-linux-gnu/{libusb,libudev,libcap}*
-
         # audio, mp3, uuid
         usr/lib/*-linux-gnu/{libasound,libmp3,libuuid}*
     )
 
-    # Users for USER nobody and USER sdruser
-    DATA=(
-        etc/passwd etc/group
-    )
+    cp -a --parents -t $OUT "${APP[@]}" "${LIBS[@]}" usr/bin/busybox
 
-    # Keep only the paths that exist, and report the ones that do not
-    KEEP=()
-    for p in "${APP[@]}" "${LIBS[@]}" "${DATA[@]}"; do
-        if [ -e "$p" ]; then
-            KEEP+=("$p")
-        else
-            echo "skipping missing: $p"
-        fi
-    done
+    # busybox applets and the dynamic loader (the one lib not listed above)
+    /usr/bin/busybox --install -s $OUT/usr/bin
+    cp -L --parents /lib64/ld-linux-x86-64.so.2 $OUT
 
-    cp -a --parents -t $OUT "${KEEP[@]}"
-    cp -a --parents -t $OUT usr/bin/busybox
+    # ---- Minimal user database, written directly (no Debian copy) ----
+    # These two lines create /out/etc/passwd and /out/etc/group, which the
+    # final COPY puts at /etc/passwd and /etc/group in the scratch image.
+    # sdruser (1000) has /tmp as home so the app can write its config file.
+    printf 'root:x:0:0:root:/root:/bin/sh\nsdruser:x:1000:1000::/tmp:/bin/sh\n' > $OUT/etc/passwd
+    printf 'root:x:0:\nsdruser:x:1000:\n' > $OUT/etc/group
 
-    # CHANGED: Ensure /out/sdr is owned by 1000:1000 and readable/executable
-    # by all users so both 'sdruser' and 'nobody' can run it.
-    chmod -R a+rX $OUT/sdr $OUT/usr/lib
+    # Readable by any user, owned by sdruser
+    chmod -R a+rX $OUT/sdr
     chown -R 1000:1000 $OUT/sdr
 EOR
 
 # ---------------------------------------------------------------------
-# Step 2: busybox applets and the dynamic loader. The loader is the one
-# library the lists above leave out.
-RUN <<'EOR'
-#!/bin/bash
-    set -euo pipefail
-
-    /usr/bin/busybox --install -s $OUT/usr/bin
-    cp -L --parents /lib64/ld-linux-x86-64.so.2 $OUT
-EOR
-
-# ---------------------------------------------------------------------
-# Step 3: check that /out is self-contained. Libraries are resolved
-# against /out only, as in the final image. The build stops on any
-# missing library. Only the app and busybox are checked; libraries the
-# .NET runtime loads with dlopen are not.
+# Check that /out is self-contained. Libraries are resolved against /out
+# only, as in the final image. The build stops on any missing library.
+# Libraries the .NET runtime loads with dlopen are not checked.
 RUN <<'EOR'
 #!/bin/bash
     set -euo pipefail
@@ -148,15 +116,19 @@ EOR
 
 #######################################################################
 # Stage 2: the final image. Only the needed files are copied in.
+#          The ENV invariant line is used in lieu of including the ICU
+#          lib (saves about 35MB).
+#          HOME=/tmp lets any uid (compose "user:" override) write its config.
+#          No Entrypoint. Commands are specified in the compose file.
 #######################################################################
 FROM scratch
-
 COPY --from=install /out/ /
 USER sdruser
 WORKDIR /sdr
-# Skip ICU (saves ~35MB). Remove this line if culture-specific behaviour
-# breaks.
-ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 \
+    HOME=/tmp
 
-# No entrypoint. Use command in docker compose to run /sdr/SDRconnect or
-# /sdr/SDRconnect_headless.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+  CMD { pidof SDRconnect_headless >/dev/null && echo -n | nc localhost 5454; } \
+   || { pidof SDRconnect >/dev/null && echo -n | nc localhost 50000; } \
+   || exit 1
