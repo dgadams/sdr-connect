@@ -4,13 +4,12 @@ services:
     container_name: headless
     image: dgadams/sdrconnect
     restart: unless-stopped
-    init: true
     ports:
       - 5454:5454
     devices:
       - /dev/bus/usb:/dev/bus/usb
-
-    user: sdruser
+    device_cgroup_rules:
+      - 'c 189:* rmw'
     cap_drop:
       - ALL
     security_opt:

@@ -1,13 +1,20 @@
-name: sdrconnect
+name: connect
 services:
-  rsp-dx:
-    container_name: rsp-dx
+  connect:
+    container_name: connect
     image: dgadams/sdrconnect
     restart: unless-stopped
     devices:
       - /dev/bus/usb:/dev/bus/usb
     ports:
       - 50000:50000
+    device_cgroup_rules:
+      - 'c 189:* rmw'
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
     command:
       - "/sdr/SDRconnect"
       - "--server"

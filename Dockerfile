@@ -1,6 +1,7 @@
 # Dockerfile for building the sdrconnect docker image
 #
-# D.G. Adams   2026-11-05    Slim version using Claude AI
+# D.G. Adams   2026-11-24    Healthcheck built into the image
+#              2026-11-05    Slim version using Claude AI
 #              2026-08-21    SDRconnect 1.0.10
 #
 # The SDR devices need USB read/write permissions.
@@ -24,11 +25,9 @@ RUN apt-get -yq update && apt-get -yq install --no-install-recommends \
 
 # The ADD assumes the location of sdrconnect is correct but it has
 # changed between revisions.  This works for 1.0.10.
-# SkiaSharp and HarfBuzzSharp are not needed, so they are removed.
 ADD https://www.sdrplay.com/software/sdrconnect_linux-x64_93b44446f.tar.gz \
     sdrconnect.tar.gz
-RUN tar xzf sdrconnect.tar.gz \
-    && rm -f sdrconnect.tar.gz libSkiaSharp.so libHarfBuzzSharp.so
+RUN tar xzf sdrconnect.tar.gz && rm sdrconnect.tar.gz
 
 #----------------------------------------------------------------------
 # Build the final filesystem in /out by copying IN only what is needed.
@@ -53,9 +52,11 @@ RUN <<'EOR'
 
     cd /
 
-    # The application: SDRconnect, SDRconnect_headless, swig_bindings.so, ...
+    # The application: SDRconnect, SDRconnect_headless, swig_bindings.so
+    # and libSystem.IO.Ports.Native.so. libSkiaSharp.so and
+    # libHarfBuzzSharp.so are not needed, so they are simply not listed.
     APP=(
-        sdr/SDRconnect* sdr/swig* sdr/lib*
+        sdr/SDRconnect* sdr/swig* sdr/libSystem*
     )
 
     # Every library the image needs. ld-linux is added separately below.
@@ -87,6 +88,7 @@ RUN <<'EOR'
     printf 'root:x:0:\nsdruser:x:1000:\n' > $OUT/etc/group
 
     # Readable by any user, owned by sdruser
+    # (SDRconnect_headless needs to write in /sdr, so keep the chown)
     chmod -R a+rX $OUT/sdr
     chown -R 1000:1000 $OUT/sdr
 EOR
@@ -128,7 +130,14 @@ WORKDIR /sdr
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 \
     HOME=/tmp
 
+# One check for both modes, chosen by which process is running:
+#   SDRconnect_headless -> websocket port 5454
+#   SDRconnect (server) -> port 50000
+# The ports must match --websocket_port / --port in the compose command.
+# nc -w 2 bounds the connect; 127.0.0.1 avoids an IPv6 localhost lookup.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-  CMD { pidof SDRconnect_headless >/dev/null && echo -n | nc localhost 5454; } \
-   || { pidof SDRconnect >/dev/null && echo -n | nc localhost 50000; } \
+  CMD { pidof SDRconnect_headless >/dev/null \
+        && nc -w 2 127.0.0.1 5454 </dev/null; } \
+   || { pidof SDRconnect >/dev/null \
+        && nc -w 2 127.0.0.1 50000 </dev/null; } \
    || exit 1
